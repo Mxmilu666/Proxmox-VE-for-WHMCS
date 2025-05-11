@@ -28,7 +28,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class PVE2_Exception extends RuntimeException {}
 
-class PVE2_API {
+class PVE2_API
+{
 	protected $hostname;
 	protected $username;
 	protected $realm;
@@ -40,7 +41,8 @@ class PVE2_API {
 	protected $login_ticket_timestamp = null;
 	protected $cluster_node_list = null;
 
-	public function __construct ($hostname, $username, $realm, $password, $port = 8006, $verify_ssl = false) {
+	public function __construct($hostname, $username, $realm, $password, $port = 8006, $verify_ssl = false)
+	{
 		if (empty($hostname) || empty($username) || empty($realm) || empty($password) || empty($port)) {
 			throw new PVE2_Exception("PVE2 API: Hostname/Username/Realm/Password/Port required for PVE2_API object constructor.", 1);
 		}
@@ -69,7 +71,8 @@ class PVE2_API {
 	 * bool login ()
 	 * Performs login to PVE Server using JSON API, and obtains Access Ticket.
 	 */
-	public function login () {
+	public function login()
+	{
 		// Prepare login variables.
 		$login_postfields = array();
 		$login_postfields['username'] = $this->username;
@@ -125,7 +128,8 @@ class PVE2_API {
 	# Sets the PVEAuthCookie
 	# Attetion, after using this the user is logged into the web interface aswell!
 	# Use with care, and DO NOT use with root, it may harm your system
-	public function setCookie() {
+	public function setCookie()
+	{
 		if (!$this->check_login_ticket()) {
 			throw new PVE2_Exception("PVE2 API: Not logged into Proxmox. No login Access Ticket found or Ticket expired.", 3);
 		}
@@ -134,7 +138,8 @@ class PVE2_API {
 	}
 
 	# Gets the PVE Access Ticket
-	public function getTicket() {
+	public function getTicket()
+	{
 		if ($this->login_ticket['ticket']) {
 			return $this->login_ticket['ticket'];
 		} else {
@@ -147,7 +152,8 @@ class PVE2_API {
 	 * Checks if the login ticket is valid still, returns false if not.
 	 * Method of checking is purely by age of ticket right now...
 	 */
-	protected function check_login_ticket () {
+	protected function check_login_ticket()
+	{
 		if ($this->login_ticket == null) {
 			// Just to be safe, set this to null again.
 			$this->login_ticket_timestamp = null;
@@ -168,10 +174,11 @@ class PVE2_API {
 	 * This method is responsible for the general cURL requests to the JSON API,
 	 * and sits behind the abstraction layer methods get/put/post/delete etc.
 	 */
-	private function action ($action_path, $http_method, $put_post_parameters = null) {
+	private function action($action_path, $http_method, $put_post_parameters = null)
+	{
 		// Check if we have a prefixed / on the path, if not add one.
 		if (substr($action_path, 0, 1) != "/") {
-			$action_path = "/".$action_path;
+			$action_path = "/" . $action_path;
 		}
 
 		if (!$this->check_login_ticket()) {
@@ -225,7 +232,7 @@ class PVE2_API {
 
 		curl_setopt($prox_ch, CURLOPT_HEADER, true);
 		curl_setopt($prox_ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($prox_ch, CURLOPT_COOKIE, "PVEAuthCookie=".$this->login_ticket['ticket']);
+		curl_setopt($prox_ch, CURLOPT_COOKIE, "PVEAuthCookie=" . $this->login_ticket['ticket']);
 		curl_setopt($prox_ch, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($prox_ch, CURLOPT_SSL_VERIFYHOST, false);
 
@@ -263,7 +270,7 @@ class PVE2_API {
 			} else {
 				throw new PVE2_Exception("PVE2 API: This API Request Failed.\n" .
 					"HTTP CODE: {$split_http_response_line[1]},\n" .
-					"HTTP ERROR: {$split_headers[0]},\n" . 
+					"HTTP ERROR: {$split_headers[0]},\n" .
 					"REPLY INFO: {$body_response}");
 				return false;
 			}
@@ -287,7 +294,8 @@ class PVE2_API {
 	 * We need this for future get/post/put/delete calls.
 	 * ie. $this->get("nodes/XXX/status"); where XXX is one of the values from this return array.
 	 */
-	public function reload_node_list () {
+	public function reload_node_list()
+	{
 		$node_list = $this->get("/nodes");
 		if (count($node_list) > 0) {
 			$nodes_array = array();
@@ -306,7 +314,8 @@ class PVE2_API {
 	 * array get_node_list ()
 	 *
 	 */
-	public function get_node_list () {
+	public function get_node_list()
+	{
 		// We run this if we haven't queried for cluster nodes as yet, and cache it in the object.
 		if ($this->cluster_node_list == null) {
 			if ($this->reload_node_list() === false) {
@@ -322,7 +331,8 @@ class PVE2_API {
 	 * Get Last VMID from a Cluster or a Node
 	 * returns a VMID, or false if not found.
 	 */
-	public function get_next_vmid () {
+	public function get_next_vmid()
+	{
 		$vmid = $this->get("/cluster/nextid");
 		if ($vmid == null) {
 			return false;
@@ -335,16 +345,17 @@ class PVE2_API {
 	 * array get_vms ()
 	 * Get List of all vms
 	 */
-	public function get_vms () {
+	public function get_vms()
+	{
 		$node_list = $this->get_node_list();
-		$result=[];
+		$result = [];
 		if (count($node_list) > 0) {
 			foreach ($node_list as $node_name) {
 				$vms_list = $this->get("nodes/" . $node_name . "/qemu/");
 				if (count($vms_list) > 0) {
-					$key_values = array_column($vms_list, 'vmid'); 
+					$key_values = array_column($vms_list, 'vmid');
 					array_multisort($key_values, SORT_ASC, $vms_list);
-					foreach($vms_list as &$row) {
+					foreach ($vms_list as &$row) {
 						$row[node] = $node_name;
 					}
 					$result = array_merge($result, $vms_list);
@@ -362,19 +373,20 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|int start_vm ($node,$vmid)
 	 * Start specific vm
 	 */
-	public function start_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function start_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$parameters = array(
 				"vmid" => $vmid,
 				"node" => $node,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/status/start";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Started VM " . $vmid . "");
 				return true;
@@ -387,20 +399,21 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|int shutdown_vm ($node,$vmid)
 	 * Gracefully shutdown specific vm
 	 */
-	public function shutdown_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function shutdown_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$parameters = array(
 				"vmid" => $vmid,
 				"node" => $node,
 				"timeout" => 60,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/status/shutdown";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Shutdown VM " . $vmid . "");
 				return true;
@@ -418,15 +431,16 @@ class PVE2_API {
 	 * bool|int stop_vm ($node,$vmid)
 	 * Force stop specific vm
 	 */
-	public function stop_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function stop_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$parameters = array(
 				"vmid" => $vmid,
 				"node" => $node,
 				"timeout" => 60,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/status/stop";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Stopped VM " . $vmid . "");
 				return true;
@@ -439,19 +453,20 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|int resume_vm ($node,$vmid)
 	 * Resume from suspend specific vm
 	 */
-	public function resume_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function resume_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$parameters = array(
 				"vmid" => $vmid,
 				"node" => $node,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/status/resume";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Resumed VM " . $vmid . "");
 				return true;
@@ -464,19 +479,20 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|int suspend_vm ($node,$vmid)
 	 * Suspend specific vm
 	 */
-	public function suspend_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function suspend_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$parameters = array(
 				"vmid" => $vmid,
-                		"node" => $node,
+				"node" => $node,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/status/suspend";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Suspended VM " . $vmid . "");
 				return true;
@@ -489,13 +505,14 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|int clone_vm ($node,$vmid)
 	 * Create fullclone of vm
 	 */
-	public function clone_vm ($node,$vmid) {
-		if(isset($vmid) && isset($node)){
+	public function clone_vm($node, $vmid)
+	{
+		if (isset($vmid) && isset($node)) {
 			$lastid = $this->get_next_vmid();
 			$parameters = array(
 				"vmid" => $vmid,
@@ -504,7 +521,7 @@ class PVE2_API {
 				"full" => true,
 			);
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/clone";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Cloned VM " . $vmid . " to " . $lastid . "");
 				return true;
@@ -521,11 +538,12 @@ class PVE2_API {
 	/*
 	 * bool|int snapshot_vm ($node,$vmid,$snapname = NULL)
 	 * Create snapshot of vm
-	 */	
-	public function snapshot_vm ($node,$vmid,$snapname = NULL) {
-		if(isset($vmid) && isset($node)){
+	 */
+	public function snapshot_vm($node, $vmid, $snapname = NULL)
+	{
+		if (isset($vmid) && isset($node)) {
 			$lastid = $this->get_next_vmid();
-			if (is_null($snapname)){
+			if (is_null($snapname)) {
 				$parameters = array(
 					"vmid" => $vmid,
 					"node" => $node,
@@ -540,7 +558,7 @@ class PVE2_API {
 				);
 			}
 			$url = "/nodes/" . $node . "/qemu/" . $vmid . "/snapshot";
-			$post = $this->post($url,$parameters);
+			$post = $this->post($url, $parameters);
 			if ($post) {
 				error_log("PVE2 API: Snapshotted VM " . $vmid . " to " . $lastid . "");
 				return true;
@@ -553,12 +571,13 @@ class PVE2_API {
 			return false;
 		}
 	}
-	
+
 	/*
 	 * bool|string get_version ()
 	 * Return the version and minor revision of Proxmox Server
 	 */
-	public function get_version () {
+	public function get_version()
+	{
 		$version = $this->get("/version");
 		if ($version == null) {
 			return false;
@@ -570,32 +589,35 @@ class PVE2_API {
 	/*
 	 * object/array? get (string action_path)
 	 */
-	public function get ($action_path) {
+	public function get($action_path)
+	{
+		logModuleCall('Proxmox VE', 'API GET Request', $action_path, '', '', '');
 		return $this->action($action_path, "GET");
 	}
 
 	/*
 	 * bool put (string action_path, array parameters)
 	 */
-	public function put ($action_path, $parameters) {
+	public function put($action_path, $parameters)
+	{
 		return $this->action($action_path, "PUT", $parameters);
 	}
 
 	/*
 	 * bool post (string action_path, array parameters)
 	 */
-	public function post ($action_path, $parameters) {
+	public function post($action_path, $parameters)
+	{
 		return $this->action($action_path, "POST", $parameters);
 	}
 
 	/*
 	 * bool delete (string action_path)
 	 */
-	public function delete ($action_path) {
+	public function delete($action_path)
+	{
 		return $this->action($action_path, "DELETE");
 	}
 
 	// Logout not required, PVEAuthCookie tokens have a 2 hour lifetime.
 }
-
-?>

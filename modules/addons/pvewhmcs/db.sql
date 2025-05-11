@@ -53,13 +53,14 @@ CREATE TABLE IF NOT EXISTS `mod_pvewhmcs_plans` (
   PRIMARY KEY (`id`)
 );
 CREATE TABLE IF NOT EXISTS `mod_pvewhmcs_vms` (
-  `id` int(10) unsigned NOT NULL,
-  `user_id` int(10) unsigned NOT NULL,
-  `vtype` varchar(255) NOT NULL,
-  `ipaddress` varchar(255) NOT NULL,
-  `subnetmask` varchar(255) NOT NULL,
-  `gateway` varchar(255) NOT NULL,
-  `created` datetime DEFAULT NULL,
-  `v6prefix` varchar(128) DEFAULT NULL,
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `vtype` enum('qemu','lxc') COLLATE utf8_unicode_ci NOT NULL,
+  `ipaddress` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
+  `ipv6address` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `subnetmask` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
+  `gateway` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
+  `created` datetime NOT NULL,
+  `v6prefix` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

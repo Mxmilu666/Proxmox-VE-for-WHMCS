@@ -57,7 +57,7 @@
 
 	<table class="table table-bordered table-striped">
 		<tr>
-			<td><strong>IP</strong> (Addressing)</td><td><strong>{$vm_config['ipv4']}</strong><br/>Subnet Mask:&nbsp;{$vm_config['netmask4']}<br/>Gateway:&nbsp;{$vm_config['gateway4']}</td>
+			<td><strong>IP</strong> (Addressing)</td><td><strong>{$vm_config['ipv4']}</strong><br/>Subnet Mask:&nbsp;{$vm_config['netmask4']}<br/>Gateway:&nbsp;{$vm_config['gateway4']}{if $guest->ipv6address neq ""}<br/><br/><strong>IPv6:</strong>&nbsp;{$guest->ipv6address}{/if}</td>
 		</tr>
 		<tr>
 			<td><strong>OS/etc</strong> (System)</td>
